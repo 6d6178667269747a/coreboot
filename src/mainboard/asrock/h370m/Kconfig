@@ -1,0 +1,36 @@
+if BOARD_ASROCK_H370M_ITX
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select BOARD_ROMSIZE_KB_16384
+	select HAVE_ACPI_RESUME
+	select HAVE_ACPI_TABLES
+	#select HAVE_OPTION_TABLE
+	select SOC_INTEL_COFFEELAKE
+	select SOC_INTEL_CANNONLAKE_PCH_H
+	select SUPERIO_NUVOTON_COMMON_COM_A
+	select SUPERIO_NUVOTON_NCT5539D
+	select MEMORY_MAPPED_TPM
+	select CONSOLE_SERIAL
+	select DRIVERS_UART_8250IO
+
+#config DISABLE_HECI1_AT_PRE_BOOT
+#	default y
+
+config MAINBOARD_DIR
+	default "asrock/h370m"
+
+config MAINBOARD_PART_NUMBER
+	default "H370M"
+
+config PRERAM_CBMEM_CONSOLE_SIZE
+	hex
+	default 0xd00
+
+config DIMM_SPD_SIZE
+	default 512 #DDR4
+
+config CBFS_SIZE
+	default 0xa00000 # 12mb available
+
+endif

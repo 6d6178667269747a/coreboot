@@ -1,0 +1,179 @@
+chip soc/intel/cannonlake
+
+	#register "DisableHeciRetry" = "1"
+
+	device cpu_cluster 0 on
+		device lapic 0 on end
+	end
+
+	# FSP configuration
+		register "s0ix_enable" = "1"
+		register "RMT" = "1"
+		#register "SaGv" = "SaGv_Enabled"
+
+		# Enabling SLP_S3#, SLP_S4#, SLP_SUS and SLP_A Stretch
+		# SLP_S3 Minimum Assertion Width. Values 0: 60us, 1: 1ms, 2: 50ms, 3: 2s
+		register "PchPmSlpS3MinAssert" = "0x02"
+
+		# SLP_S4 Minimum Assertion Width. Values 0: default, 1: 1s, 2: 2s, 3: 3s, 4: 4s
+		register "PchPmSlpS4MinAssert" = "0x04"
+
+		# SLP_SUS Minimum Assertion Width. Values 0: 0ms, 1: 500ms, 2: 1s, 3: 4s
+		register "PchPmSlpSusMinAssert" = "0x03"
+
+		# SLP_A Minimum Assertion Width. Values 0: 0ms, 1: 4s, 2: 98ms, 3: 2s
+		register "PchPmSlpAMinAssert" = "0x03"
+
+	register "PcieClkSrcClkReq" = "{ \
+		[0]		= 0, \
+		[1]		= 1, \
+		[2]		= 2, \
+		[3]		= 3, \
+		[4]		= 4, \
+		[5]		= 6, \
+		[6]		= 5, \
+		[7]		= 15, \
+		[8]		= 7, \
+		[9]		= 9, \
+		[10]	= 10, \
+		[11]	= 11, \
+		[12]	= 12, \
+		[13]	= 13, \
+		[14]	= 14, \
+		[15]	= 8, \
+	}"
+
+	register "PcieClkSrcUsage[0]" = "0x20" # [01]----00.000:01.0
+	register "PcieClkSrcUsage[9]" = "0x24" # +-1c.0-[02]----00.0  Intel Corporation I211 Gigabit Network Connection
+	register "PcieClkSrcUsage[14]" = "0x40" # +-1d.0-[03]----00.0  Samsung Electronics Co Ltd NVMe SSD Controller SM981/PM981/PM983
+	register "PcieClkSrcUsage[15]" = "0x18" # +-1c.6-[02]----00.0  Intel Corporation Dual Band Wireless-AC 3168NGW [Stone Peak
+	register "PcieClkSrcUsage[10]" = "0x70" # -1f.6  Intel Corporation Ethernet Connection (7) I219-V
+
+
+	device domain 0 on
+		device pci 00.0 on
+			subsystemid 0x1849 0x3e1f
+		end # Intel Corporation 8th Gen Core 4-core Desktop Processor Host Bridge/DRAM Registers
+		device pci 01.0 on
+			register "PcieRpEnable[1]" = "1"
+			register "PcieRpSlotImplemented[1]" = "1" 
+			register "PcieRpMaxPayload[1]" = "RpMaxPayload_256"
+			register "PcieRpLtrEnable[1]" = "1"
+		end # Intel Corporation 6th-10th Gen Core Processor PCIe Controller (x16) (rev 07)
+		device pci 02.0 on  end # Integrated Graphics Device
+		device pci 08.0 off	end # Intel Corp. 6th/7th/8th Gen Core Processor Gaussian Mixture Model
+		device pci 12.0	on
+			subsystemid 0x1849 0xa379
+		end # Intel Corporation Cannon Lake PCH Thermal Controller
+		device pci 14.0 on
+			subsystemid 0x1849 0xa36d
+
+			register "usb2_ports" = "{
+#define ASROCKFOO_USB2_CONFIG(pin) { \
+	.enable        = 1, \
+	.ocpin         = (pin), \
+	.tx_bias       = USB2_BIAS_0MV, \
+	.tx_emp_enable = USB2_DE_EMP_ON_PRE_EMP_ON, \
+	.pre_emp_bias  = USB2_BIAS_28P15MV, \
+	.pre_emp_bit   = USB2_FULL_BIT_PRE_EMP, \
+}
+				[0] = USB2_PORT_EMPTY,
+				[1] = USB2_PORT_EMPTY,
+				[2] = USB2_PORT_EMPTY,
+				[3] = USB2_PORT_EMPTY,
+				[4] = USB2_PORT_EMPTY,
+				[5] = USB2_PORT_EMPTY,
+				[6] = USB2_PORT_EMPTY,
+				[7] = USB2_PORT_EMPTY,
+				[8] = ASROCKFOO_USB2_CONFIG(OC0),	/* USB_2 */
+				[9] = ASROCKFOO_USB2_CONFIG(OC1),	/* USB_1 */
+				[10] = USB2_PORT_EMPTY,
+				[11] = USB2_PORT_EMPTY,
+				[12] = ASROCKFOO_USB2_CONFIG(OC2),	/* piggy-back */
+				[13] = ASROCKFOO_USB2_CONFIG(OC3),	/* M.2 key E */
+				[14] = USB2_PORT_EMPTY,
+				[15] = USB2_PORT_EMPTY,
+			}"
+			register "usb3_ports" = "{ \
+				[0]		= USB3_PORT_DEFAULT(OC4), \
+				[1]		= USB3_PORT_DEFAULT(OC0), \
+				[2]		= USB3_PORT_DEFAULT(OC2), \
+				[3]		= USB3_PORT_DEFAULT(OC5), \
+				[4]		= USB3_PORT_DEFAULT(OC5), \
+				[5]		= USB3_PORT_DEFAULT(OC0), \
+				[6]		= USB3_PORT_DEFAULT(OC1), \
+				[7]		= USB3_PORT_DEFAULT(OC1), \
+				[8]		= USB3_PORT_DEFAULT(OC_SKIP), \
+				[9]		= USB3_PORT_DEFAULT(OC3), \
+			}"
+		end # Intel Corporation Cannon Lake PCH USB 3.1 xHCI Host Controller (rev 10)
+		device pci 16.0 on  end # Intel Corporation Cannon Lake PCH HECI Controller
+		device pci 17.0 on
+			register "satapwroptimize" = "1"
+			register "SataSalpSupport" = "0"
+			register "SataPortsEnable" = "{ \
+				[0]     = 1, \
+				[1]     = 1, \
+				[2]     = 1, \
+				[3]     = 1, \
+				[4]     = 1, \
+				[5]     = 1, \
+			}"
+			register "SataPortsHotPlug" = "{ \
+				[0]     = 1, \
+				[1]     = 1, \
+				[2]     = 1, \
+				[3]     = 1, \
+				[4]     = 1, \
+				[5]     = 1, \
+			}"
+			register "SataPortsDevSlp" = "{ \
+				[0]     = 1, \
+				[1]     = 1, \
+				[2]     = 1, \
+				[3]     = 1, \
+				[4]     = 1, \
+				[5]     = 1, \
+			}"
+		end # Intel Corporation Cannon Lake PCH SATA AHCI Controller
+		device pci 1c.0 on
+			#device pci 00.0 on	end	# Intel Corporation I211 Gigabit Network Connection
+			register "PcieRpEnable[5]" = "1"
+			register "PcieRpSlotImplemented[5]" = "0"
+			register "PcieRpHotPlug[5]" = "1"
+			register "PcieRpLtrEnable[5]" = "1"
+			register "PcieRpMaxPayload[5]" = "RpMaxPayload_256"
+		end # Intel Corporation Cannon Lake PCH PCI Express Root Port #6 (rev f0)
+		device pci 1c.6 on
+			#device pci 00.0	off	end	# Intel Corporation Dual Band Wireless-AC 3168NGW
+			register "PcieRpEnable[6]" = "1"
+			register "PcieRpSlotImplemented[6]" = "1"
+			register "PcieRpLtrEnable[6]" = "1"
+			register "PcieRpMaxPayload[6]" = "RpMaxPayload_256"
+		end # Intel Corporation Cannon Lake PCH PCI Express Root Port #7
+		device pci 1d.0 on
+			register "PcieRpEnable[8]" = "1"
+			register "PcieRpSlotImplemented[8]" = "1"
+			register "PcieRpHotPlug[8]" = "1"
+			register "PcieRpLtrEnable[8]" = "1"
+			register "PcieRpMaxPayload[8]" = "RpMaxPayload_256"
+		end # Intel Corporation Cannon Lake PCH PCI Express Root Port #9 (rev f0) (NVMe foo)
+		device pci 1f.0 on
+			chip superio/common
+				device pnp 2e.0 on  end
+			end
+			chip drivers/pc80/tpm	# TPM
+				device pnp 0c31.0 on  end
+			end
+		end # Intel Corporation H370 Chipset LPC/eSPI Controller
+		device pci 1f.2 hidden end # Power Management Controller
+		device pci 1f.3 on
+			register "PchHdaAudioLinkHda" = "1"
+			register "PchHdaAudioLinkDmic0" = "1"
+			register "PchHdaAudioLinkDmic1" = "1"
+		end # Intel Corporation Cannon Lake PCH cAVS
+		device pci 1f.4 on  end # Intel Corporation Cannon Lake PCH SMBus Controller
+		device pci 1f.5 on  end # Intel Corporation Cannon Lake PCH SPI Controller
+		device pci 1f.6 on  end # Intel Corporation Ethernet Connection (7) I219-V
+	end
+end
